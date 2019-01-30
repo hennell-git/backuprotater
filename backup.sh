@@ -5,7 +5,7 @@
 SOURCE_FOLDER="/source/" # source folder
 DESTINATION_FOLDER="/backup/" # mounted folder
 BASENAME="basename $SOURCE_FOLDER"
-ROTATE_PERIOD=10
+ROTATE_COUNT=10
 # datestamp has a formatted date
 datestamp=`date +"%d-%m-%Y"`
 #### Display command usage ########
@@ -15,17 +15,17 @@ usage()
   USAGE:
   backuprot [OPTIONS] /source_folder/ /destination_folder/
   Back up and entire folder, creates tgz and ,
-  performs x day rotation of backups Must provide source anddestination folders
+  performs x count rotation of backups Must provide source and destination folders
   OPTIONS:
-  -p Specify Rotation period in days - default is $ROTATE_PERIOD
+  -p Specify Rotation count - default is $ROTATE_COUNT
   EXAMPLES:
   backuprot -p 5 [/source_folder/] [/destination_folder/]
 EOF
 }
 #### Getopts #####
-while getopts ":p " opt; do
+while getopts "p:" opt; do
 case "$opt" in
-  p) ROTATE_PERIOD=${OPTARG};;
+  p) ROTATE_COUNT=${OPTARG};;
   \?) echo "$OPTARG is an unknown option"
   usage
   exit 1
@@ -61,17 +61,16 @@ done
  mv $SOURCE_FOLDER/$TGZFILE $DESTINATION_FOLDER
  echo "\nMoving $LATEST_FILE -- to --> $DESTINATION_FOLDER "
  mv $SOURCE_FOLDER/$LATEST_FILE $DESTINATION_FOLDER
- # count the number of file(s) in the appropriate folder Rotate the logs, delete older than
- # ROTATE_PERIOD days, if their are at_least 7 backups
+ # count the number of file(s) in the appropriate folder Rotate the logs, delete oldest files
  FILE_COUNT=`find $DESTINATION_FOLDER -maxdepth 1 -type f | wc -l`
- echo "\n Rotation period $ROTATE_PERIOD for $DESTINATION_FOLDER "
+ echo "\n Rotation count $ROTATE_COUNT for $DESTINATION_FOLDER "
  echo "\n $FILE_COUNT files found in $DESTINATION_FOLDER folder"
- echo "\n find $DESTINATION_FOLDER -mtime +$ROTATE_PERIOD"
+ echo "\n ls -d -1t $DESTINATION_FOLDER/*.* | tail-n +$(($ROTATE_COUNT+1))"
  echo "\n -----------------------------------"
- if [ $FILE_COUNT -gt $ROTATE_PERIOD ]; then
- echo "Removing backups older than $ROTATE_PERIOD in $DESTINATION_FOLDER"
+ if [ $FILE_COUNT -gt $ROTATE_COUNT ]; then
+ echo "Removing backups older than $ROTATE_COUNT in $DESTINATION_FOLDER"
  echo "Removing these old backup files..."
- find $DESTINATION_FOLDER -mtime +$ROTATE_PERIOD -exec rm {} \;
+ ls -d -1t $PWD/$DESTINATION_FOLDER/*.* | tail -n +$(($ROTATE_COUNT+1))| xargs rm
  else
  echo "Only $FILE_COUNT file, NOT removing older backups in $DESTINATION_FOLDER "
  fi
