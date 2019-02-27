@@ -70,7 +70,7 @@ done
  if [ $FILE_COUNT -gt $ROTATE_COUNT ]; then
  echo "Removing backups older than $ROTATE_COUNT in $DESTINATION_FOLDER"
  echo "Removing these old backup files..."
- ls -d -1t $PWD/$DESTINATION_FOLDER/*.* | tail -n +$(($ROTATE_COUNT+1))| xargs rm
+ ls -d -1t $DESTINATION_FOLDER/*.* | tail -n +$(($ROTATE_COUNT+1))| xargs rm
  else
  echo "Only $FILE_COUNT file, NOT removing older backups in $DESTINATION_FOLDER "
  fi
